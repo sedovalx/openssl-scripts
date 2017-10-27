@@ -1,0 +1,9 @@
+ca/certs/
+ca/private/
+ca/reqs/
+ca/signedcerts/
+
+ca/serial
+ca/index.txt
+ca/index.txt.attr
+ca/*.old
