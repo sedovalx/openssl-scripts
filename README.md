@@ -23,7 +23,7 @@ Now you have a self-signed certificate that can be used to setup an SSL for your
 
 ## Also
 
-You can convert the certificate and the key files into `pfx` format that is usually preferrable on Windows. Just use the command 
+You can convert the certificate and the key files into `pfx` format that is a container for a certificate and the private key of this certificate. Just run the command 
 
 ```
 $ ./bin/convert_pem_to_pfx.sh server "Arbitrary description of the certificate"
