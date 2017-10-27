@@ -8,10 +8,10 @@ default_ca = local_ca
 #
 [ local_ca ]
 dir = #root_folder#
-certificate = $dir/certs/cacert.pem
+certificate = $dir/certs/ca_crt.pem
 database = $dir/index.txt
 new_certs_dir = $dir/signedcerts
-private_key = $dir/private/cakey.pem
+private_key = $dir/private/ca_key.pem
 serial = $dir/serial
 #
 #
@@ -56,7 +56,7 @@ basicConstraints = CA:false
 #
 [ req ]
 default_bits = 2048
-default_keyfile = #root_folder#/private/cakey.pem
+default_keyfile = #root_folder#/private/ca_key.pem
 #
 # sha1 is no longer recommended, we will be using sha256
 default_md = sha256
