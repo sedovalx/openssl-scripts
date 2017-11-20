@@ -1,6 +1,6 @@
 # Description
 
-A folder structure and a set of bash scripts to help with self-signed certificates creation. Scripts use the `openssl` tool.
+A folder structure and a set of bash scripts to help with self-signed certificates creation. Scripts use the `openssl` tool so it should be in the PATH.
 
 ## Structure
 
@@ -15,11 +15,18 @@ A folder structure and a set of bash scripts to help with self-signed certificat
 
 - Init the configuration with `$ ./bin/init.sh`. The script sets the current folder in the `ca.cnf` file.
 - Create a CA certificate with `$ ./bin/create-ca-cert.sh`. It creates the certificate in the `certs` folder and the private key for it in the `private` folder. The script uses the `ca.cnf` configuration. During the execution, you will be asked for a passphrase to protect your CA private key (2 times).
-- Create a server certificate with `$ ./bin/create-server-cert.sh "server"`. It creates the certificate in the `certs` folder and signs it with the CA key. Also, it creates the key of the certificate in the `private` folder. During the execution, you will be asked for 
+- Create a server certificate with `$ ./bin/create-server-cert.sh "server"` using the `confs/server.cnf`. It creates the certificate in the `certs` folder and signs it with the CA key. Also, it creates the key of the certificate in the `private` folder. During the execution, you will be asked for 
   - a passphrase to protect your server certificate key (3 times)
   - the passphrase of your CA private key (1 time)
 
 Now you have a self-signed certificate that can be used to setup an SSL for your web site. The site can be opened in Chrome without issues.
+
+- Create a client certificate with `$ ./bin/create-client-cert.sh "client"` using the `confs/client.cnf`. It creates the certificate in the `certs` folder and signs it with the CA key. Also, it creates the key of the certificate in the `private` folder. During the execution, you will be asked for 
+  - a passphrase to protect your client certificate key (3 times)
+  - the passphrase of your CA private key (1 time)
+  
+Now you have a self-signed client certificate that can be installed on your client machine. Typically it is done in the form of a `pfx` container that includes the private key also. Don't forget to install the CA certificate on the client machine and add it to trusted.  
+
 
 ## Also
 
