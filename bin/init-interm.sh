@@ -3,30 +3,29 @@
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-read -r -d '' message << EOM
-The command supports three arguments:
+read -r -d '' MESSAGE << EOM
+The command supports next arguments:
  - *required* the name of the target folder where the intermediate CA should be created (the name is added to the current dir)
- - *optional* name of the intermediate certificate (default: the first argument value)
  - *optional* max lenght of a certificate path that can be created with this intermediate certificate (default: 0)
 EOM
 
-: ${1?"$message"}
+: ${1?"$MESSAGE"}
 if [ -z "$1" ]; then
-	echo "$message"
+	echo "$MESSAGE"
 	exit 1
 fi
 
-targetDir=$PWD/$1
-name=${2:-default $1}
-pathlen=${3:-default 0}
+TARGET_DIR=$PWD/$1
+NAME=$1
+PATHLEN=${2:-0}
 
-mkdir $targetDir
-cd $targetDir
+mkdir $TARGET_DIR
+cd $TARGET_DIR
 mkdir certs crl csr newcerts private
-chmod 700 private
+# chmod 700 private
 touch index.txt
 echo 1000 > serial
-echo 1000 > $targetDir/crlnumber
+echo 1000 > crlnumber
 
 cp -r ../bin .
 
@@ -35,21 +34,21 @@ default_ca = CA_default
 
 [ CA_default ]
 # Directory and file locations.
-dir               = $targetDir
-certs             = $dir/certs
-crl_dir           = $dir/crl
-new_certs_dir     = $dir/newcerts
-database          = $dir/index.txt
-serial            = $dir/serial
-RANDFILE          = $dir/private/.rand
+dir               = $TARGET_DIR
+certs             = \$dir/certs
+crl_dir           = \$dir/crl
+new_certs_dir     = \$dir/newcerts
+database          = \$dir/index.txt
+serial            = \$dir/serial
+RANDFILE          = \$dir/private/.rand
 
 # The root key and root certificate.
-private_key       = $dir/private/$name.key.pem
-certificate       = $dir/certs/$name.cert.pem
+private_key       = \$dir/private/$NAME.key.pem
+certificate       = \$dir/certs/$NAME.cert.pem
 
 # For certificate revocation lists.
-crlnumber         = $dir/crlnumber
-crl               = $dir/crl/$name.crl.pem
+crlnumber         = \$dir/crlnumber
+crl               = \$dir/crl/$NAME.crl.pem
 crl_extensions    = crl_ext
 default_crl_days  = 30
 
@@ -94,10 +93,10 @@ commonName                      = Common Name
 emailAddress                    = Email Address
 
 # Optionally, specify some defaults.
-countryName_default             = GB
-stateOrProvinceName_default     = England
+countryName_default             = DE
+stateOrProvinceName_default     = Germany
 localityName_default            =
-0.organizationName_default      = Alice Ltd
+0.organizationName_default      = Acme Test
 organizationalUnitName_default  =
 emailAddress_default            =
 
@@ -105,12 +104,6 @@ emailAddress_default            =
 subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true
-keyUsage = critical, digitalSignature, cRLSign, keyCertSign
-
-[ v3_intermediate_ca ]
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer
-basicConstraints = critical, CA:true, pathlen:$pathlen
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 
 [ usr_cert ]
@@ -141,3 +134,40 @@ authorityKeyIdentifier = keyid,issuer
 keyUsage = critical, digitalSignature
 extendedKeyUsage = critical, OCSPSigning
 " > openssl.cnf
+
+echo -e "${BLUE}Creating the $NAME key...${NC}"
+openssl genrsa -aes256 -out private/$NAME.key.pem 4096
+
+echo -e "${BLUE}Creating the $NAME certificate request...${NC}"
+openssl req -config openssl.cnf -new -sha256 \
+	-key private/$NAME.key.pem \
+	-out csr/$NAME.csr.pem
+
+echo -e "${BLUE}Creating the $NAME certificate...${NC}"
+cd ..
+V3_INTERM_CA="
+[ v3_intermediate_ca ]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:$PATHLEN
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+"	
+openssl ca \
+	-config <(cat openssl.cnf <(printf "$V3_INTERM_CA")) \
+	-extensions v3_intermediate_ca \
+	-days 3650 -notext -md sha256 \
+	-in $NAME/csr/$NAME.csr.pem \
+	-out $NAME/certs/$NAME.cert.pem	
+
+cd $NAME	
+
+# Read-only for everyone
+# chmod 444 $NAME/certs/$NAME.cert.pem
+
+# Show the certificate
+openssl x509 -noout -text -in certs/$NAME.cert.pem
+# Verify the certificate agains the CA certificate
+openssl verify -CAfile ../certs/ca-chain.cert.pem certs/$NAME.cert.pem
+
+# Create the certificate chain file
+cat certs/$NAME.cert.pem ../certs/ca-chain.cert.pem > certs/ca-chain.cert.pem	
