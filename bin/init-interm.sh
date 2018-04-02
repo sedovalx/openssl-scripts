@@ -2,7 +2,7 @@
 
 read -r -d '' message << EOM
 The command supports three arguments:
- - *required* target folder where the intermediate CA should be created
+ - *required* the name of the target folder where the intermediate CA should be created (the name is added to the current dir)
  - *optional* name of the intermediate certificate (default: intermediate)
  - *optional* max lenght of a certificate path that can be created with this intermediate certificate (default: 0)
 EOM
@@ -13,7 +13,7 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
-targetDir=$1
+targetDir=$PWD/$1
 name=${2:-default intermediate}
 pathlen=${3:-default 0}
 

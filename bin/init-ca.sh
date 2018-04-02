@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-message="The command supports a single *required* parameter - target folder where the CA folder structure should be created"
+message="The command supports a single *required* parameter - the name of the target folder where the CA folder structure should be created (the name is added to the current dir)"
 
 : ${1?$message}
 if [ -z "$1" ]; then
@@ -8,7 +8,7 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
-caDir=$1
+caDir=$PWD/$1
 
 mkdir $caDir
 cd $caDir
