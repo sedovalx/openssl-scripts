@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
 message="The command supports a single *required* parameter - the name of the target folder where the CA folder structure should be created (the name is added to the current dir)"
 
 : ${1?$message}
@@ -8,10 +11,11 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
-caDir=$PWD/$1
+targetDir=$PWD/$1
+pathlen=$2
 
-mkdir $caDir
-cd $caDir
+mkdir $targetDir
+cd $targetDir
 mkdir bin certs crl newcerts private
 chmod 700 private
 touch index.txt
@@ -24,7 +28,7 @@ default_ca = CA_default
 
 [ CA_default ]
 # Directory and file locations.
-dir               = $caDir
+dir               = $targetDir
 certs             = $dir/certs
 crl_dir           = $dir/crl
 new_certs_dir     = $dir/newcerts
@@ -95,6 +99,12 @@ authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 
+[ v3_intermediate_ca ]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:true, pathlen:$pathlen
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
 [ crl_ext ]
 authorityKeyIdentifier=keyid:always
 
@@ -106,3 +116,21 @@ keyUsage = critical, digitalSignature
 extendedKeyUsage = critical, OCSPSigning
 " > openssl.cnf
 
+echo -e "${BLUE}Creating the root key...${NC}"
+openssl genrsa -aes256 -out private/ca.key.pem 4096
+chmod 400 private/ca.key.pem
+
+echo -e "${BLUE}Creating the root certificate...${NC}"
+openssl req -config openssl.cnf \
+	-key private/ca.key.pem \
+	-new -x509 -days 7300 -sha256 -extensions v3_ca \
+	-out certs/ca.cert.pem
+
+# Read-only for everyone
+chmod 444 carts/ca.cert.pem
+
+# Show the generated certificate
+openssl x509 -noout -text -in certs/ca.cert.pem
+
+# Create the certificate chain file
+cat certs/ca.cert.pem > certs/ca-chain.cert.pem

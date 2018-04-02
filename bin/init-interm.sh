@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
 read -r -d '' message << EOM
 The command supports three arguments:
  - *required* the name of the target folder where the intermediate CA should be created (the name is added to the current dir)
- - *optional* name of the intermediate certificate (default: intermediate)
+ - *optional* name of the intermediate certificate (default: the first argument value)
  - *optional* max lenght of a certificate path that can be created with this intermediate certificate (default: 0)
 EOM
 
@@ -14,7 +17,7 @@ if [ -z "$1" ]; then
 fi
 
 targetDir=$PWD/$1
-name=${2:-default intermediate}
+name=${2:-default $1}
 pathlen=${3:-default 0}
 
 mkdir $targetDir
