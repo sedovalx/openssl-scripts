@@ -3,6 +3,10 @@
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+echo_clr() {
+    echo -e "${BLUE}$1${NC}"
+}
+
 MESSAGE="The command supports a single *required* parameter - the name of the target folder where the CA folder structure should be created (the name is added to the current dir)"
 
 : ${1?$MESSAGE}
@@ -61,7 +65,7 @@ stateOrProvinceName     = match
 organizationName        = match
 organizationalUnitName  = optional
 commonName              = supplied
-emailAddress            = optional
+emailAddress            = supplied
 
 [ req ]
 default_bits        = 2048
@@ -98,6 +102,24 @@ authorityKeyIdentifier = keyid:always,issuer
 basicConstraints = critical, CA:true
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 
+[ usr_cert ]
+basicConstraints = CA:FALSE
+nsCertType = client, email
+nsComment = "OpenSSL Generated Client Certificate"
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth, emailProtection
+
+[ server_cert ]
+basicConstraints = CA:FALSE
+nsCertType = server
+nsComment = "OpenSSL Generated Server Certificate"
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer:always
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+
 [ crl_ext ]
 authorityKeyIdentifier=keyid:always
 
@@ -109,11 +131,11 @@ keyUsage = critical, digitalSignature
 extendedKeyUsage = critical, OCSPSigning
 " > openssl.cnf
 
-echo -e "${BLUE}Creating the root key...${NC}"
+echo_clr "Creating the root key..."
 openssl genrsa -aes256 -out private/ca.key.pem 4096
 # chmod 400 private/ca.key.pem
 
-echo -e "${BLUE}Creating the root certificate...${NC}"
+echo_clr "Creating the root certificate..."
 openssl req -config openssl.cnf \
 	-key private/ca.key.pem \
 	-new -x509 -days 7300 -sha256 -extensions v3_ca \

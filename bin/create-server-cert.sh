@@ -7,7 +7,7 @@ echo_clr() {
     echo -e "${BLUE}$1${NC}"
 }
 
-MESSAGE="The command supports a single *required* parameter - a fully qualified domain name"
+MESSAGE="The command supports a single *required* parameter - a fully qualified domain name (example: myserver.com)"
 
 : ${1?$MESSAGE}
 if [ -z "$1" ]; then

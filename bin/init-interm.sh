@@ -3,6 +3,10 @@
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+echo_clr() {
+    echo -e "${BLUE}$1${NC}"
+}
+
 read -r -d '' MESSAGE << EOM
 The command supports next arguments:
  - *required* the name of the target folder where the intermediate CA should be created (the name is added to the current dir)
@@ -69,7 +73,7 @@ localityName            = optional
 organizationName        = optional
 organizationalUnitName  = optional
 commonName              = supplied
-emailAddress            = optional
+emailAddress            = supplied
 
 [ req ]
 default_bits        = 2048
@@ -135,15 +139,15 @@ keyUsage = critical, digitalSignature
 extendedKeyUsage = critical, OCSPSigning
 " > openssl.cnf
 
-echo -e "${BLUE}Creating the $NAME key...${NC}"
+echo_clr "Creating the $NAME key..."
 openssl genrsa -aes256 -out private/$NAME.key.pem 4096
 
-echo -e "${BLUE}Creating the $NAME certificate request...${NC}"
+echo_clr "Creating the $NAME certificate request..."
 openssl req -config openssl.cnf -new -sha256 \
 	-key private/$NAME.key.pem \
 	-out csr/$NAME.csr.pem
 
-echo -e "${BLUE}Creating the $NAME certificate...${NC}"
+echo_clr "Creating the $NAME certificate..."
 cd ..
 V3_INTERM_CA="
 [ v3_intermediate_ca ]
@@ -164,10 +168,12 @@ cd $NAME
 # Read-only for everyone
 # chmod 444 $NAME/certs/$NAME.cert.pem
 
+
+echo_clr "Verify the certificate..."
+openssl verify -CAfile ../certs/ca-chain.cert.pem certs/$NAME.cert.pem
+
 # Show the certificate
 openssl x509 -noout -text -in certs/$NAME.cert.pem
-# Verify the certificate agains the CA certificate
-openssl verify -CAfile ../certs/ca-chain.cert.pem certs/$NAME.cert.pem
 
 # Create the certificate chain file
 cat certs/$NAME.cert.pem ../certs/ca-chain.cert.pem > certs/ca-chain.cert.pem	
