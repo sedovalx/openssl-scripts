@@ -27,6 +27,7 @@ echo_clr "Creation of the $DOMAIN_NAME certificate request..."
 openssl req \
     -new -sha256 \
     -reqexts SAM \
+    -extensions SAM \
     -config <(cat openssl.cnf <(printf "\n[SAM]\nsubjectAltName=DNS:$DOMAIN_NAME")) \
     -key private/$DOMAIN_NAME.key.pem \
     -out csr/$DOMAIN_NAME.csr.pem

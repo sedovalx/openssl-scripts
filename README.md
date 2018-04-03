@@ -144,7 +144,7 @@ That's it, the new intermediate certificate is ready. It is issued and signed by
 
 ## Creation of a server certificate
 
-
+A server certificate is used during an SSL handshake to establish an HTTPS connection between a client browser and your site. Typically you want the server certificate to be accessible without entering the pass phrase of its key on each OS startup so are going to generate the key without encription.
 
 ## Troubleshooting
 
