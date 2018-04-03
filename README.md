@@ -20,7 +20,7 @@ The scripts are mostly intended to be used for generation of test certificates. 
 
 Each of the commands that generate either a CA certificate or an intermediate certificate create the next folder structure:
 
-- `bin` the folder where the scripts goes
+- `bin` the folder where the scripts go
 - `certs` contains PEM files with certificate data
 - `private` contains corresponding PEM files with key data
 - `csr` contains certificate requests PEM files
@@ -38,7 +38,6 @@ Creating the root key...
 Generating RSA private key, 4096 bit long modulus
 ................................................................................................................................................................................................++
 ......................................................++
-e is 63437 (0x10001)
 ```
 
 Then you need to enter and repeet a pass phrase to protect your CA key. It may be an arbitrary sequence of symbols. You need to remember it!
@@ -48,7 +47,7 @@ Enter pass phrase for private/ca.key.pem:
 Verifying - Enter pass phrase for private/ca.key.pem:
 ```
 
-The next step is the creation of the root certificate itself. You need to endter the pass phrase of your CA key to proceed. Make sure to specify the common name and the email address fields.
+The next step is the creation of the root certificate itself. You need to enter the pass phrase of your CA key to proceed. Make sure to specify the common name and the email address fields.
 
 ```bash
 Creating the root certificate...
@@ -73,7 +72,7 @@ Now you have a self-signed CA certificate.
 
 ### Creation of an intermediate certificate
 
-In this example, we will create two intermediate certificates. During the creation of an intermediate certificate you need to specify how many of nested intermediates do you allow. So for the first intermediate certificate we specify `1` as one more nested intermediate certificate is allowed.
+In this example, we will create two nested intermediate certificates. Before the creation of an intermediate certificate you need to specify how many of nested intermediates are you going to allow. So for the first intermediate certificate we specify `1` as one more nested intermediate certificate is to be created.
 
 ```bash
 # Move to the generated folder of the CA first
@@ -83,17 +82,16 @@ Creating the interm-adm key...
 Generating RSA private key, 4096 bit long modulus
 ..........................................++
 ..........................++
-e is 65537 (0x10001)
 ```
 
-Then you need to enter and repeet a pass phrase to protect your **intermediate** certificate's key.
+Then you need to enter and repeat a pass phrase to protect your **intermediate** certificate's key.
 
 ```bash
 Enter pass phrase for private/interm-adm.key.pem:
 Verifying - Enter pass phrase for private/interm-adm.key.pem:
 ```
 
-Reenter the pass phrase for your intermediate certificate's key to allow `openssl` to create the certificate request. Make sure to specify the common name and the email address fields. Also, in case of the intermediate certificates creation the scripts uses a strict policy that requre an intermediate certificate has the same values for `Country Name`, `State or Province Name` and `Organization Name` fields as in the CA certificate.
+Reenter the pass phrase for your intermediate certificate's key to allow `openssl` to create a certificate request. Make sure to specify values for the common name and the email address fields. Also, in case of the intermediate certificates creation the script uses a strict policy that requres an intermediate certificate has the same values for `Country Name`, `State or Province Name` and `Organization Name` fields as in the CA certificate.
 
 ```bash
 Creating the interm-adm certificate request...
@@ -105,16 +103,16 @@ There are quite a few fields but you can leave some blank
 For some fields there will be a default value,
 If you enter '.', the field will be left blank.
 -----
-Country Name (2 letter code) [DE]:
-State or Province Name [Germany]:
+Country Name (2 letter code) [DE]:   <-- the same as in CA
+State or Province Name [Germany]:    <-- the same as in CA
 Locality Name []:
-Organization Name [Acme Test]:
+Organization Name [Acme Test]:       <-- the same as in CA
 Organizational Unit Name []:Adm
 Common Name []:Acme Test interm Adm
 Email Address []:admin@acme.com
 ```
 
-The next thing is signing the intermediate certificate with the CA's key. So you will be asked to enter the **CA key**'s pass phrase.
+The next step is signing the intermediate certificate with the CA's key. So you will be asked to enter the **CA key**'s pass phrase.
 
 ```bash
 Creating the interm-adm certificate...
@@ -133,14 +131,14 @@ cd root-ca/interm-adm
 ./bin/init-interm.sh interm-hub
 ```
 
-It is an edge level intermediate certificate so the number of allowed nested intermediates is zero. It is a default value so you don't need to specify it as an argument. All other things are the same
+The certificate that is created is an edge level intermediate certificate so the number of allowed nested intermediates should be zero. Zero is the default value so you don't need to specify it as an argument. All other things are the same
 
 - Enter and repeat a pass phrase to protect the key of the new certificate
 - Enter it again to create a certificate request
 - Specify certificate's DN details. Don't forget to use the same values for `Country Name`, `State or Province Name` and `Organization Name` fields as in the CA certificate. Fields `Common Name` and `Email Address` are required.
 - Enter the pass phrase of the **parent** intermediate certificate (it is `interm-adm` in our case) to sign the new certificate
 
-That's it, the new intermediate certificate is ready. It is issued and signed by the parent intermediate certificate.
+That's it, the new intermediate certificate is ready. It is issued and signed by the parent intermediate certificate authority.
 
 ## Creation of a server certificate
 
@@ -157,7 +155,7 @@ Generating RSA private key, 2048 bit long modulus
 ......+++
 ```
 
-There will be no pass phrase request as we are not encoding the key. Then, a certificate request is created and you are asked to provide distinguished name details for the server certificate. The required fields are 'Common Name' and `Email Address`. **Make sure to enter the main DNS of your site as a value for the Common Name field.**
+There will be no pass phrase request as we are not encrypting the key. Then, a certificate request is created and you are asked to provide distinguished name details for the server certificate. The required fields are 'Common Name' and `Email Address`. **Make sure to enter the main DNS of your site as a value for the Common Name field.**
 
 ```bash
 Creation of the hub.test certificate request...
@@ -177,7 +175,7 @@ Common Name []:test.example.com    <-- here it is
 Email Address []:admin@acme.com
 ```
 
-After that, you need to provide a pass phrase of the parent intermediate certificate to sign the server certificate.
+After that, you need to provide the pass phrase of the parent intermediate certificate (interm-hub) to sign the server certificate.
 
 ```bash
 Creation of the hub.test certificate...
@@ -194,20 +192,20 @@ X509v3 Subject Alternative Name:
     DNS:test.example.com
 ```
 
-It is required to make Google Chrome happy. Your site may be accessible via several different DNS names and you may want to use the same server certificate for all of them. In this case, please edit the `create-server-cert.sh` file and add more DNS names into the `[ alt_names ]` section.
+The section is required to make Google Chrome happy. Your site may be accessible via several different DNS names and you may want to use the same server certificate for all of them. In this case, please edit the `create-server-cert.sh` file and add more DNS names into the `[ alt_names ]` section. Lately it may be automated by passing all DNS names as arguments to the script.
 
 ### Creation of a client certificate
 
-Client certificates are used for the client certificate authentication during the SSL handshake. Imagine, you want to give an access to a site only for those users who has a certificate (and its private key) issued by your CA.
+Client certificates are used for the client certificate authentication during the SSL handshake. Imagine, you want to give an access to a site only to those users who have a certificate (and its private key) issued by your CA or an intermediate authority.
 
-Note that you are not asked to enter a pass phrase to protect the key of the cretificate. It is because scripts are intended to serve testing purposes. If you want to generate client certificates for a production edit the `create-client-cert.sh` script and change the key generation lines as follows. The difference here is `-aes256` parameter.
+Note that you are not asked to enter a pass phrase to protect the key of the cretificate. It is because scripts are intended to serve testing purposes. If you want to generate client certificates for production edit the `create-client-cert.sh` script and change the generation lines as follows. The difference here is `-aes256` parameter.
 
 ```bash
 openssl -aes256 genrsa -out private/$USER_NAME.key.pem 2048
 # openssl genrsa -out private/$USER_NAME.key.pem 2048
 ```
 
-To create a client certificate use the next command, provide a meaningful certificate name as an argument. The name is used in file names only.
+To create a client certificate use the next command, provide a meaningful certificate name as an argument. The name is used to name created files only.
 
 ```bash
 $ cd root-ca/interm-adm/interm-hub
@@ -216,10 +214,9 @@ Creation of the alexander_sedov key...
 Generating RSA private key, 2048 bit long modulus
 ........+++
 ............................................................+++
-e is 65537 (0x10001)
 ```
 
-On the next step you are asked to provide values for the distinguished name of the certificate. Make sure to fill the `Common Name` and `Emain Address`.
+On the next step you are asked to provide values for the distinguished name of the certificate. Make sure to fill the `Common Name` and `Email Address`.
 
 ```bash
 Creation of the alexander_sedov certificate request...
@@ -239,7 +236,7 @@ Common Name []:Alexander Sedov
 Email Address []:alexander.sedov@mail.com
 ```
 
-Then, enter a pass phrase of the parent intermediate certificate key to sign the client certificate.
+Then, enter the pass phrase of the parent certificate (interm-hub) key to sign the client certificate.
 
 ```bash
 Creation of the alexander_sedov certificate...
@@ -249,11 +246,11 @@ Check that the request matches the signature
 Signature ok
 ```
 
-The certificate is ready and may be found in the `certs` folder. The corresponding key is in the `private` folder.
+The certificate is ready and may be found in the `root-ca/interm-adm/interm-hub/certs` folder. The corresponding key is in the `root-ca/interm-adm/interm-hub/private` folder.
 
 ## Troubleshooting
 
 - Check if the `openssl` is installed in your system and is in the PATH
-- Try to go through the process using the same pass phrase for all (Ca and intermediates) keys. Then, if everything goes fine, try to start from the begining using different pass phrases.
+- Try to go through the process using the same pass phrase for all (CA and intermediates) keys. Then, if everything goes fine, try to start from the begining using different pass phrases.
 - Don't forget to `cd` before executing the `init-interm.sh` script
-- Plan the certificate path length from the begining. Basically, when you create a top level intermediate certificate you need to know how many nested intermediates you want to create.
+- Plan the certificate path length from the begining. Basically, when you create a top level intermediate certificate you need to know how many nested intermediates you will create.
