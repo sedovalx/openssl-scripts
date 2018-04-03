@@ -196,6 +196,61 @@ X509v3 Subject Alternative Name:
 
 It is required to make Google Chrome happy. Your site may be accessible via several different DNS names and you may want to use the same server certificate for all of them. In this case, please edit the `create-server-cert.sh` file and add more DNS names into the `[ alt_names ]` section.
 
+### Creation of a client certificate
+
+Client certificates are used for the client certificate authentication during the SSL handshake. Imagine, you want to give an access to a site only for those users who has a certificate (and its private key) issued by your CA.
+
+Note that you are not asked to enter a pass phrase to protect the key of the cretificate. It is because scripts are intended to serve testing purposes. If you want to generate client certificates for a production edit the `create-client-cert.sh` script and change the key generation lines as follows. The difference here is `-aes256` parameter.
+
+```bash
+openssl -aes256 genrsa -out private/$USER_NAME.key.pem 2048
+# openssl genrsa -out private/$USER_NAME.key.pem 2048
+```
+
+To create a client certificate use the next command, provide a meaningful certificate name as an argument. The name is used in file names only.
+
+```bash
+$ cd root-ca/interm-adm/interm-hub
+$ ./bin/create-client-cert.sh "alexander sedov"
+Creation of the alexander_sedov key...
+Generating RSA private key, 2048 bit long modulus
+........+++
+............................................................+++
+e is 65537 (0x10001)
+```
+
+On the next step you are asked to provide values for the distinguished name of the certificate. Make sure to fill the `Common Name` and `Emain Address`.
+
+```bash
+Creation of the alexander_sedov certificate request...
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [DE]:
+State or Province Name [Germany]:
+Locality Name []:
+Organization Name [Acme Test]:
+Organizational Unit Name []:Hub
+Common Name []:Alexander Sedov
+Email Address []:alexander.sedov@mail.com
+```
+
+Then, enter a pass phrase of the parent intermediate certificate key to sign the client certificate.
+
+```bash
+Creation of the alexander_sedov certificate...
+Using configuration from openssl.cnf
+Enter pass phrase for /path/to/root-ca/interm-adm/interm-hub/private/interm-hub.key.pem:
+Check that the request matches the signature
+Signature ok
+```
+
+The certificate is ready and may be found in the `certs` folder. The corresponding key is in the `private` folder.
+
 ## Troubleshooting
 
 - Check if the `openssl` is installed in your system and is in the PATH
