@@ -24,14 +24,16 @@ openssl genrsa -out private/$DOMAIN_NAME.key.pem 2048
 # chmod 400 private/$DOMAIN_NAME.key.pem
 
 echo_clr "Creation of the $DOMAIN_NAME certificate request..."
-openssl req -config openssl.cnf \
+openssl req \
     -new -sha256 \
+    -reqexts SAM \
+    -config <(cat openssl.cnf <(printf "\n[SAM]\nsubjectAltName=DNS:$DOMAIN_NAME")) \
     -key private/$DOMAIN_NAME.key.pem \
     -out csr/$DOMAIN_NAME.csr.pem
 
 echo_clr "Creation of the $DOMAIN_NAME certificate..."    
 openssl ca \
-    -config <(cat openssl.cnf <(printf "\n[SAM]\nsubjectAltName=DNS:$DOMAIN_NAME")) \
+    -config openssl.cnf \
     -extensions server_cert \
     -days 375 \
     -notext \
