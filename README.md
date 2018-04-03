@@ -144,7 +144,57 @@ That's it, the new intermediate certificate is ready. It is issued and signed by
 
 ## Creation of a server certificate
 
-A server certificate is used during an SSL handshake to establish an HTTPS connection between a client browser and your site. Typically you want the server certificate to be accessible without entering the pass phrase of its key on each OS startup so are going to generate the key without encription.
+A server certificate is used during an SSL handshake to establish an HTTPS connection between a client browser and your site. Typically you want the server certificate to be accessible without entering the pass phrase of its key on each OS startup so we are going to generate the key without an encription.
+
+Run the next command and provide a DNS name of your site as an argument.
+
+```bash
+$ cd root-ca/interm-adm/interm-hub
+$ ./bin/create-server-cert.sh test.example.com
+Creation of the test.example.com key...
+Generating RSA private key, 2048 bit long modulus
+..........................................................+++
+......+++
+```
+
+There will be no pass phrase request as we are not encoding the key. Then, a certificate request is created and you are asked to provide distinguished name details for the server certificate. The required fields are 'Common Name' and `Email Address`. **Make sure to enter the main DNS of your site as a value for the Common Name field.**
+
+```bash
+Creation of the hub.test certificate request...
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [DE]:
+State or Province Name [Germany]:
+Locality Name []:
+Organization Name [Acme Test]:
+Organizational Unit Name []:Hub
+Common Name []:test.example.com    <-- here it is
+Email Address []:admin@acme.com
+```
+
+After that, you need to provide a pass phrase of the parent intermediate certificate to sign the server certificate.
+
+```bash
+Creation of the hub.test certificate...
+Using configuration from /dev/fd/63
+Enter pass phrase for /path/to/root-ca/interm-adm/interm-hub/private/interm-hub.key.pem:
+Check that the request matches the signature
+Signature ok
+```
+
+The server certificate is ready. Check out the SAN section in the certificate
+
+```plain
+X509v3 Subject Alternative Name:
+    DNS:test.example.com
+```
+
+It is required to make Google Chrome happy. Your site may be accessible via several different DNS names and you may want to use the same server certificate for all of them. In this case, please edit the `create-server-cert.sh` file and add more DNS names into the `[ alt_names ]` section.
 
 ## Troubleshooting
 
