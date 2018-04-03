@@ -26,15 +26,27 @@ openssl genrsa -out private/$DOMAIN_NAME.key.pem 2048
 echo_clr "Creation of the $DOMAIN_NAME certificate request..."
 openssl req \
     -new -sha256 \
-    -reqexts SAM \
-    -extensions SAM \
-    -config <(cat openssl.cnf <(printf "\n[SAM]\nsubjectAltName=DNS:$DOMAIN_NAME")) \
+    -config openssl.cnf \
     -key private/$DOMAIN_NAME.key.pem \
     -out csr/$DOMAIN_NAME.csr.pem
 
 echo_clr "Creation of the $DOMAIN_NAME certificate..."    
+SERVER_CERT_EXT="
+[ server_cert ]
+basicConstraints = CA:FALSE
+nsCertType = server
+nsComment = \"OpenSSL Generated Server Certificate\"
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer:always
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+subjectAltName=@alt_names
+
+[ alt_names ]
+DNS.1 = $DOMAIN_NAME
+"
 openssl ca \
-    -config openssl.cnf \
+    -config <(cat openssl.cnf <(printf "\n$SERVER_CERT_EXT")) \
     -extensions server_cert \
     -days 375 \
     -notext \

@@ -119,15 +119,6 @@ authorityKeyIdentifier = keyid,issuer
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth, emailProtection
 
-[ server_cert ]
-basicConstraints = CA:FALSE
-nsCertType = server
-nsComment = "OpenSSL Generated Server Certificate"
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid,issuer:always
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
-
 [ crl_ext ]
 authorityKeyIdentifier=keyid:always
 
@@ -157,7 +148,7 @@ basicConstraints = critical, CA:true, pathlen:$PATHLEN
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 "	
 openssl ca \
-	-config <(cat openssl.cnf <(printf "$V3_INTERM_CA")) \
+	-config <(cat openssl.cnf <(printf "\n$V3_INTERM_CA")) \
 	-extensions v3_intermediate_ca \
 	-days 3650 -notext -md sha256 \
 	-in $NAME/csr/$NAME.csr.pem \
