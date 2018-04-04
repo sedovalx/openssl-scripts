@@ -19,7 +19,7 @@ TARGET_DIR=$PWD/$1
 
 mkdir $TARGET_DIR
 cd $TARGET_DIR
-mkdir certs crl newcerts private
+mkdir csr certs crl newcerts private
 # chmod 700 private
 touch index.txt
 echo 1000 > serial
