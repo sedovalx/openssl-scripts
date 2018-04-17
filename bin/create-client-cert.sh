@@ -7,7 +7,13 @@ echo_clr() {
     echo -e "${BLUE}$1${NC}"
 }
 
-MESSAGE="The command supports a single *required* parameter - a name of a user (example: alexander.sedov)"
+read -r -d '' MESSAGE << EOM
+The command supports next arguments:
+ - *required* a name of a user (example: alexander.sedov)
+ - *optional* start date of the certificate in the format of YYMMDDHHMMSSZ (example: 20180412235500Z)
+ - *optional* end date of the certificate in the format of YYMMDDHHMMSSZ (example: 20180412235500Z)
+EOM
+MESSAGE="The command supports a next parameters *required* parameter - a name of a user (example: alexander.sedov)"
 
 : ${1?$MESSAGE}
 if [ -z "$1" ]; then
@@ -17,6 +23,8 @@ fi
 
 # Replace all spaces with underscores
 USER_NAME=${1// /_}
+START_DATE=$2
+END_DATE=$3
 
 echo_clr "Creation of the $USER_NAME key..."
 # openssl -aes256 genrsa -out private/$USER_NAME.key.pem 2048
@@ -30,15 +38,28 @@ openssl req -config openssl.cnf \
     -key private/$USER_NAME.key.pem \
     -out csr/$USER_NAME.csr.pem
 
-echo_clr "Creation of the $USER_NAME certificate..."    
-openssl ca \
-    -config openssl.cnf \
-    -extensions usr_cert \
-    -days 375 \
-    -notext \
-    -md sha256 \
-    -in csr/$USER_NAME.csr.pem \
-    -out certs/$USER_NAME.cert.pem
+echo_clr "Creation of the $USER_NAME certificate..."
+if ! ([ -z "$START_DATE" ] || [ -z "$END_DATE" ])    
+then
+    openssl ca \
+        -config openssl.cnf \
+        -extensions usr_cert \
+        -startdate $START_DATE \
+        -enddate $END_DATE \
+        -notext \
+        -md sha256 \
+        -in csr/$USER_NAME.csr.pem \
+        -out certs/$USER_NAME.cert.pem
+else
+    openssl ca \
+        -config openssl.cnf \
+        -extensions usr_cert \
+        -days 375 \
+        -notext \
+        -md sha256 \
+        -in csr/$USER_NAME.csr.pem \
+        -out certs/$USER_NAME.cert.pem
+fi
 
 # chmod 444 certs/$USER_NAME.cert.pem
 

@@ -25,7 +25,7 @@ PATHLEN=${2:-0}
 
 mkdir $TARGET_DIR
 cd $TARGET_DIR
-mkdir certs crl csr newcerts private
+mkdir certs crl csr newcerts pfx private
 # chmod 700 private
 touch index.txt
 echo 1000 > serial

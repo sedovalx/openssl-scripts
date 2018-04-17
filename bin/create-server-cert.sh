@@ -62,3 +62,6 @@ openssl verify -CAfile certs/ca-chain.cert.pem certs/$DOMAIN_NAME.cert.pem
 # Show the certificate
 openssl x509 -noout -text -in certs/$DOMAIN_NAME.cert.pem    
 
+# Create server certificate chain
+cat certs/$DOMAIN_NAME.cert.pem certs/ca-chain.cert.pem > certs/$DOMAIN_NAME-chain.cert.pem
+

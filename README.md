@@ -12,11 +12,32 @@ The repository is a set of scripts to automate creation of a CA on a base of the
 
 All of this was possible because of [the great article of Jamie Nguyen](https://jamielinux.com/docs/openssl-certificate-authority) and couple of other internet sources.
 
-The scripts are mostly intended to be used for generation of test certificates. If you plan to use it in production please read the article first and examine the sources. At very least you'll probably want to uncomment several `chmod` directives which protect key and certificate files.
+The scripts are mostly intended to be used for generation of test certificates. If you plan to use it in production please read the article first and **examine the sources**.
+
+## TL;DR;
+
+Here is a summary of supported commands:
+
+```bash
+# create a CA
+./init-ca root-ca
+# change the current folder
+cd root-ca
+# create an intermediate CA
+./bin/init-interm.sh IntermCA 0
+# change the current folder
+cd IntermCA
+# create a server certificate
+./bin/create-server-cert.sh test.example.com
+# create a client certificate
+./bin/create-client-cert.sh alexander.sedov 20160101120000Z 20171231235959Z
+# create a PFX file from a client certificate
+./bin/pem2pfx.sh alexander.sedov
+```
 
 ## Usage
 
-## Folder stricture
+### Folder structure
 
 Each of the commands that generate either a CA certificate or an intermediate certificate create the next folder structure:
 
@@ -205,11 +226,11 @@ openssl -aes256 genrsa -out private/$USER_NAME.key.pem 2048
 # openssl genrsa -out private/$USER_NAME.key.pem 2048
 ```
 
-To create a client certificate use the next command, provide a meaningful certificate name as an argument. The name is used to name created files only.
+To create a client certificate use the next command, provide a meaningful certificate name as an argument. The name is used to name created files only. Also, optional start and end certificate dates are supported as the second and the thitd parameter. If either start or end date are omitted than the certificate is created with a validity period starting from now and 375 days long.
 
 ```bash
 $ cd root-ca/interm-adm/interm-hub
-$ ./bin/create-client-cert.sh "alexander sedov"
+$ ./bin/create-client-cert.sh "alexander sedov" 20160101120000Z 20171231235959Z
 Creation of the alexander_sedov key...
 Generating RSA private key, 2048 bit long modulus
 ........+++
