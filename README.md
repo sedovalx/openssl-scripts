@@ -148,7 +148,7 @@ After that, you need to confirm twice and here it is - your intermediate certifi
 The creation of a nested intermediate certificate is straightforward. You need to go on the level of the `interm-adm` (parent) certificate and execute the same commands as for the creation of the first intermediate certificate.
 
 ```bash
-cd root-ca/interm-adm
+cd interm-adm
 ./bin/init-interm.sh interm-hub
 ```
 
